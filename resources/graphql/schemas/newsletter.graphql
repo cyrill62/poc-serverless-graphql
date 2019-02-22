@@ -1,0 +1,21 @@
+scalar DateTime
+
+type Query {
+  newsletter(uuid: String!): Newsletter
+  newsletters: [Newsletter]
+}
+
+type Mutation {
+  createNewsletter(object: String!, content: String!): Newsletter
+}
+
+type Newsletter {
+  uuid: String
+  object: String
+  content: String
+  fromEmail: String
+  replyToEmail: String
+  sendAt: DateTime
+  createdAt: DateTime
+  updatedAt: DateTime
+}

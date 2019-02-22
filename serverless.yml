@@ -1,0 +1,86 @@
+# NOTE: update this with your service name
+service: poc-serverless-graphql
+
+# Use the serverless-webpack plugin to transpile ES6
+plugins:
+  - serverless-webpack
+  - serverless-dynamodb-local
+  - serverless-offline
+custom:
+  dynamodb:
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+  serverless-offline:
+    port: 8081
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: eu-west-1
+  environment: ${file(env.yml):${self:provider.stage}}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:UpdateItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+functions:
+  graphql:
+    memorySize: 128
+    handler: functions/stitching.query
+    events:
+      - http:
+          path: graphql
+          method: post
+          cors: true
+  users:
+    memorySize: 128
+    handler: functions/recipients.query
+    events:
+      - http:
+          path: recipients
+          method: post
+  newsletters:
+    memorySize: 128
+    handler: functions/newsletters.query
+    events:
+      - http:
+          path: newsletters
+          method: post
+          cors: true
+
+resources:
+  Resources:
+#    - ${file:resources/dynamodb/*.yml}
+    NewsletterRecipientsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 10
+          WriteCapacityUnits: 10
+        TableName: NewsletterRecipients
+    NewslettersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: uuid
+            AttributeType: S
+        KeySchema:
+          - AttributeName: uuid
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 10
+          WriteCapacityUnits: 10
+        TableName: Newsletters

@@ -1,0 +1,22 @@
+scalar DateTime
+
+type Query {
+  recipient(email: String!): Recipient
+  recipients: [Recipient]
+}
+
+type Mutation {
+  subscribe(firstName: String!, lastName: String!, email: String!): Recipient
+  unsubscribe(email: String!, unsubscribeToken: String!): Recipient
+}
+
+type Recipient {
+  firstName: String
+  lastName: String
+  email: String!
+  unsubscribeToken: String
+  subscribedAt: DateTime
+  unsubscribedAt: DateTime
+  createdAt: DateTime
+  updatedAt: DateTime
+}
